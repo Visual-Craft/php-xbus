@@ -1,0 +1,32 @@
+{
+  "name": "orus-io/php-xbus",
+  "license": "MIT",
+  "description": "PHP Client for xbus.io.",
+  "type": "library",
+  "require": {
+    "google/protobuf": "^3.6"
+  },
+  "require-dev": {
+    "github.com/nats-rpc/nrpc": "dev-master",
+    "phpunit/phpunit": "^7"
+  },
+  "repositories" : [{
+      "type": "package",
+      "package": {
+          "name": "github.com/nats-rpc/nrpc",
+          "version": "dev-master",
+          "source": {
+              "url": "https://github.com/nats-rpc/nrpc",
+              "type": "git",
+              "reference": "origin/master"
+          }
+      }
+  }],
+  "autoload": {
+      "classmap": [
+          "src/",
+          "gen/",
+          "vendor/google/protobuf/php/src/"
+      ]
+  }
+}
