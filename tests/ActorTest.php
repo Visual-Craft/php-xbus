@@ -15,6 +15,7 @@ final class ActorTest extends TestCase
             new \XbusClient\Actor('http://test.test', 'theApiKey')
         );
     }
+
     public function testCanSend(): void
     {
         $mypost = function ($url, $headers):\Requests_Response {
@@ -37,6 +38,43 @@ final class ActorTest extends TestCase
         $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
         $actor->setRequestPost($mypost);
         $actor->emitItems("a.event.type", "item1", "item2");
+    }
+
+    public function testCanHandleRequest(): void
+    {
+
+        $processRequest = new \Xbus\ActorProcessRequest();
+
+        $input = fopen("php://memory", "rw");
+        fwrite($input, $processRequest->serializeToString());
+        fseek($input, 0);
+
+        $setHeader = function ($h) {
+            $this->assertEquals("Content-Type: application/x-protobuf", $h);
+        };
+        $output = fopen("php://memory", "rw");
+
+        $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+
+
+        $handler = function ($processRequest): ?\Xbus\ActorProcessingState {
+            return null;
+        };
+
+        $actor->handleRequest(
+            "application/x-protobuf", $input, $setHeader, $output, $handler
+        );
+        fseek($output, 0);
+
+        // Check output and header
+        $state = new \Xbus\ActorProcessingState();
+        $data = fread($output, 1024*1024*2);
+        $state->mergeFromString($data);
+        $this->assertEquals(
+            \Xbus\ActorProcessingState_Status::SUCCESS,
+            $state->getStatus(),
+            "Error: " . Utils::printMessages($state->getMessages())
+        );
     }
 }
 

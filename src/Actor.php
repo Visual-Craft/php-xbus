@@ -78,6 +78,39 @@ final class Actor
         $envelope = Builders::buildEnvelopeFromItems($eventType, ...$items);
         $this->send(null, "default", $envelope);
     }
+
+    function handleRequest(
+        string $contentType,
+        $input,
+        callable $responseHeader,
+        $response,
+        $cb
+    ) {
+        if ($contentType != "application/x-protobuf") {
+            throw Exception("Invalid content type: " . $contentType);
+        }
+        $processRequest = new \Xbus\ActorProcessRequest();
+        $processRequest->mergeFromString(fread($input, 1024*1024*2));
+
+        try {
+            $state = $cb($processRequest);
+            if ($state == null) {
+                $state = new \Xbus\ActorProcessingState();
+                $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
+            }
+        } catch(Exception $e) {
+            $state = new \Xbus\ActorProcessingState();
+            $state->setStatus(\Xbus\ActorProcessingState_Status::ERROR);
+
+            $message = new \Xbus\LogMessage();
+            $message.setText($e);
+
+            $state->setMessages(array($message));
+        }
+        $responseHeader("Content-Type: application/x-protobuf");
+
+        fwrite($response, $state->serializeToString());
+    }
 }
 
 ?>
