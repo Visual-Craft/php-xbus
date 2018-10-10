@@ -9,6 +9,9 @@ emitters, consumers and workers.
 Installation
 ------------
 
+.. code-block:: bash
+
+    composer require orus-io/php-xbus dev-default
 
 Usage
 -----
