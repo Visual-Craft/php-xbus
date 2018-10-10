@@ -13,11 +13,20 @@ final class Actor
 {
     private $_url;
     private $_apiKey;
+    private $_requestPost;
 
     public function __construct(string $url, string $apiKey)
     {
         $this->_url = $url;
         $this->_apiKey = $apiKey;
+        $this->_request_post = function ($url, $headers) {
+            \Requests::post($url, $headers);
+        };
+    }
+
+    public function setRequestPost(callable $requestPost): void
+    {
+        $this->_requestPost = $requestPost;
     }
 
     /**
@@ -38,37 +47,22 @@ final class Actor
 
         $data = $request->serializeToString();
 
-        $httpRequest = curl_init($this->_url);
-        curl_setopt($httpRequest, CURLOPT_POST, 1);
-        curl_setopt(
-            $httpRequest, CURLOPT_HTTPHEADER,
-            array(
-                'Content-Type: application/x-protobuf',
-                'Content-Length: ' . strlen($data)
-            )
+        $headers = array(
+            'Content-Type'=> 'application/x-protobuf',
+            'Content-Length'=> strlen($data),
+            'Xbus-Api-Key'=> $this->_apiKey
         );
-        curl_setopt($httpRequest, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($httpRequest, CURLOPT_RETURNTRANSFER, 1);
 
-        $response = curl_exec($httpRequest);
+        $response = call_user_func($this->_requestPost, $this->_url, $headers);
 
-        $errno = curl_errno($httpRequest);
-        if ($errno != 0) {
+        if ($response->status_code != 200) {
             throw new \Exception(
-                "Error sending envelope: curl error=" . curl_error($httpRequest)
-            );
-
-        }
-        $status = curl_getinfo($httpRequest, CURLINFO_HTTP_CODE);
-        curl_close($httpRequest);
-
-        if ($status != 200) {
-            throw new \Exception(
-                "Error sending envelope: status=" . $status . ", body:" . $response
+                "Error sending envelope: status=" . $response->status_code
+                . ", body:" . $response->body
             );
         }
         $ack = new \Xbus\EnvelopeAck();
-        $ack->mergeFromString($response);
+        $ack->mergeFromString($response->body);
         if ($ack->getStatus() == \Xbus\EnvelopeAck_ReceptionStatus::ERROR ) {
             throw new Exception(
                 "Envelope was not accepted by the server. Reason: "

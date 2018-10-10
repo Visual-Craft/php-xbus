@@ -4,7 +4,8 @@
   "description": "PHP Client for xbus.io.",
   "type": "library",
   "require": {
-    "google/protobuf": "^3.6"
+    "google/protobuf": "^3.6",
+    "rmccue/requests": "^1.7"
   },
   "require-dev": {
     "github.com/nats-rpc/nrpc": "dev-master",
