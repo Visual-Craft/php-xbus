@@ -26,8 +26,7 @@
   "autoload": {
       "classmap": [
           "src/",
-          "gen/",
-          "vendor/google/protobuf/php/src/"
+          "gen/"
       ]
   }
 }
