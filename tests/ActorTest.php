@@ -12,14 +12,14 @@ final class ActorTest extends TestCase
     {
         $this->assertInstanceOf(
             \XbusClient\Actor::class,
-            new \XbusClient\Actor('http://test.test', 'theApiKey')
+            new \XbusClient\Actor('http://test.test', 'aname', 'theApiKey')
         );
     }
 
     public function testCanSend(): void
     {
         $mypost = function ($url, $headers):\Requests_Response {
-            $this->assertEquals("http://test.test", $url);
+            $this->assertEquals("http://test.test/sender/output", $url);
             $this->assertEquals("theApiKey", $headers["Xbus-Api-Key"]);
 
             $ack = new \Xbus\EnvelopeAck();
@@ -35,7 +35,7 @@ final class ActorTest extends TestCase
             return $res;
         };
 
-        $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+        $actor = new \XbusClient\Actor('http://test.test', 'sender', 'theApiKey');
         $actor->setRequestPost($mypost);
         $actor->emitItems("a.event.type", "item1", "item2");
     }
@@ -58,7 +58,7 @@ final class ActorTest extends TestCase
         };
         $output = fopen("php://memory", "rw");
 
-        $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+        $actor = new \XbusClient\Actor('http://test.test', 'receiver', 'theApiKey');
 
 
         $handler = function ($processRequest): ?\Xbus\ActorProcessingState {

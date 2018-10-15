@@ -12,12 +12,14 @@ namespace XbusClient;
 final class Actor
 {
     private $_url;
+    private $_name;
     private $_apiKey;
     private $_requestPost;
 
-    public function __construct(string $url, string $apiKey)
+    public function __construct(string $url, string $name, string $apiKey)
     {
         $this->_url = $url;
+        $this->_name = $name;
         $this->_apiKey = $apiKey;
         $this->_request_post = function ($url, $headers) {
             \Requests::post($url, $headers);
@@ -53,7 +55,11 @@ final class Actor
             'Xbus-Api-Key'=> $this->_apiKey
         );
 
-        $response = call_user_func($this->_requestPost, $this->_url, $headers);
+        $response = call_user_func(
+            $this->_requestPost,
+            $this->_url . "/" . $this->_name . "/output",
+            $headers
+        );
 
         if ($response->status_code != 200) {
             throw new \Exception(

@@ -3,9 +3,11 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+$consumer = new \XbusClient\Actor(
+    'http://localhost:9876', 'php-consumer', 'theApiKey'
+);
 
-$actor->handleRequest(
+$consumer->handleRequest(
     $_SERVER['HTTP_CONTENT_TYPE'],  // <- The incoming request content type
     fopen('php://input', 'r'),  // <- The incoming request body (as a resource)
     'header',  // <- a callable that set a header on the response
@@ -16,9 +18,11 @@ $actor->handleRequest(
         $event = $request->getInputs()[0]->getEnvelope()->getEvents()[0];
         $items = $event->getItems();
 
-        $actor = new \XbusClient\Actor('http://localhost:8911', 'theApiKey');
+        $emitter = new \XbusClient\Actor(
+            'http://localhost:9876', 'php-emitter', 'theApiKey'
+        );
 
-        $actor->emitItems($event->getType(), ...$items);
+        $emitter->emitItems($event->getType(), ...$items);
     }
 );
 
