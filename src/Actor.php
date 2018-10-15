@@ -21,8 +21,8 @@ final class Actor
         $this->_url = $url;
         $this->_name = $name;
         $this->_apiKey = $apiKey;
-        $this->_request_post = function ($url, $headers) {
-            \Requests::post($url, $headers);
+        $this->_requestPost = function ($url, $headers, $data) {
+            return \Requests::post($url, $headers, $data);
         };
     }
 
@@ -58,7 +58,8 @@ final class Actor
         $response = call_user_func(
             $this->_requestPost,
             $this->_url . "/" . $this->_name . "/output",
-            $headers
+            $headers,
+            $data
         );
 
         if ($response->status_code != 200) {
@@ -70,7 +71,7 @@ final class Actor
         $ack = new \Xbus\EnvelopeAck();
         $ack->mergeFromString($response->body);
         if ($ack->getStatus() == \Xbus\EnvelopeAck_ReceptionStatus::ERROR ) {
-            throw new Exception(
+            throw new \Exception(
                 "Envelope was not accepted by the server. Reason: "
                 . $ack->getReason()
             );
@@ -94,7 +95,7 @@ final class Actor
         $cb
     ) {
         if ($contentType != "application/x-protobuf") {
-            throw Exception("Invalid content type: " . $contentType);
+            throw new \Exception("Invalid content type: " . $contentType);
         }
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->mergeFromString(fread($input, 1024*1024*2));
