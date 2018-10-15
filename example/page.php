@@ -4,7 +4,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 $consumer = new \XbusClient\Actor(
-    'http://localhost:9876', 'php-consumer', 'theApiKey'
+    'http://localhost:8911', 'php-consumer', 'theApiKey'
 );
 
 $consumer->handleRequest(
@@ -19,7 +19,7 @@ $consumer->handleRequest(
         $items = $event->getItems();
 
         $emitter = new \XbusClient\Actor(
-            'http://localhost:9876', 'php-emitter', 'theApiKey'
+            'http://localhost:8911', 'php-emitter', 'theApiKey'
         );
 
         $emitter->emitItems($event->getType(), ...$items);
