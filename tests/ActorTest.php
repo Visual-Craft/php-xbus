@@ -42,8 +42,9 @@ final class ActorTest extends TestCase
 
     public function testCanHandleRequest(): void
     {
-
+        $inputs = array(new \Xbus\ActorProcessRequest_Input());
         $processRequest = new \Xbus\ActorProcessRequest();
+        $processRequest->setInputs($inputs);
 
         $input = fopen("php://memory", "rw");
         fwrite($input, $processRequest->serializeToString());
@@ -51,6 +52,9 @@ final class ActorTest extends TestCase
 
         $setHeader = function ($h) {
             $this->assertEquals("Content-Type: application/x-protobuf", $h);
+        };
+        $setHttpCode = function ($code) {
+            $this->assertFalse(true, "Should be called only on errors");
         };
         $output = fopen("php://memory", "rw");
 
@@ -62,7 +66,8 @@ final class ActorTest extends TestCase
         };
 
         $actor->handleRequest(
-            "application/x-protobuf", $input, $setHeader, $output, $handler
+            "application/x-protobuf",
+            $input, $setHeader, $setHttpCode, $output, $handler
         );
         fseek($output, 0);
 

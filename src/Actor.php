@@ -83,6 +83,7 @@ final class Actor
         string $contentType,
         $input,
         callable $responseHeader,
+        callable $responseCode,
         $response,
         $cb
     ) {
@@ -92,8 +93,14 @@ final class Actor
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->mergeFromString(fread($input, 1024*1024*2));
 
+        if (count($processRequest->getInputs()) <1) {
+            call_user_func($responseCode, 400);
+            fwrite($response, "Invalid request: no input");
+            return;
+        }
+
         try {
-            $state = $cb($processRequest);
+            $state = call_user_func($cb, $processRequest);
             if ($state == null) {
                 $state = new \Xbus\ActorProcessingState();
                 $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
@@ -107,7 +114,7 @@ final class Actor
 
             $state->setMessages(array($message));
         }
-        $responseHeader("Content-Type: application/x-protobuf");
+        call_user_func($responseHeader, "Content-Type: application/x-protobuf");
 
         fwrite($response, $state->serializeToString());
     }
