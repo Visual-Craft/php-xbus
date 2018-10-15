@@ -13,6 +13,7 @@ final class Builders
         ...$items
     ): \Xbus\Event {
         $ev = new \Xbus\Event();
+        $ev->setType($eventType);
         $ev->setItemCount(count($items));
         $ev->setItems($items);
         return $ev;
