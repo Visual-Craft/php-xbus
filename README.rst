@@ -24,7 +24,7 @@ To emit a simple envelope with one events containing one or more items:
 .. code-block:: php
 
     <?php
-    $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+    $actor = new \XbusClient\Actor('http://test.test', 'emittername', 'theApiKey');
     $actor->emitItems("a.event.type", "item1", "item2");
     ?>
 
@@ -39,11 +39,12 @@ A typical implementation for the endpoint is:
 .. code-block:: php
 
     <?php
-    $actor = new \XbusClient\Actor('http://test.test', 'theApiKey');
+    $actor = new \XbusClient\Actor('http://test.test', 'consumername', 'theApiKey');
     $actor->handleRequest(
         $_SERVER['HTTP_CONTENT_TYPE'],  // <- The incoming request content type
         fopen('php://input', 'r'),  // <- The incoming request body (as a resource)
         'header',  // <- a callable that set a header on the response
+        'http_response_code',  // <- a callable that sets the http response code
         fopen('php://output', 'w'), // The response body resource
 
         // The user-defined handler. This example one will print the incoming items
