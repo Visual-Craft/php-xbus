@@ -22,7 +22,7 @@ $consumer->handleRequest(
             'http://localhost:8911', 'php-emitter', 'theApiKey'
         );
 
-        $emitter->emitItems($event->getType(), ...$items);
+        $emitter->emitItems($event->getType() . ".reply", ...$items);
     }
 );
 
