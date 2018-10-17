@@ -62,18 +62,10 @@ final class Actor
             $data
         );
 
-        if ($response->status_code != 200) {
+        if ($response->status_code != 200 || $response->body == "OK") {
             throw new \Exception(
                 "Error sending envelope: status=" . $response->status_code
                 . ", body:" . $response->body
-            );
-        }
-        $ack = new \Xbus\EnvelopeAck();
-        $ack->mergeFromString($response->body);
-        if ($ack->getStatus() == \Xbus\EnvelopeAck_ReceptionStatus::ERROR ) {
-            throw new \Exception(
-                "Envelope was not accepted by the server. Reason: "
-                . $ack->getReason()
             );
         }
     }
