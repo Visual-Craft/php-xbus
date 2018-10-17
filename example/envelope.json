@@ -1,0 +1,7 @@
+{
+    "events": [{
+        "type": "msg",
+        "encoding": "text",
+        "items": ["item1", "item2"]
+    }]
+}

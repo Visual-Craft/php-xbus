@@ -1,0 +1,73 @@
+xbusd:
+clients:
+- account-name: php-app
+  autostart: false
+  apikey: theApiKey
+  actors:
+    "0":
+      name: php-consumer
+      kind: consumer
+      status: enabled
+      roles: [php-consumer]
+      config:
+      - key: http.webhook.url
+        value: http://localhost:9876/page.php
+    "1":
+      name: php-emitter
+      kind: emitter
+      status: enabled
+      roles: [php-emitter]
+- account-name: printer
+  autostart: true
+  actors:
+    "0":
+      name: console-printer
+      kind: consumer
+      status: enabled
+      roles: [console-printer]
+      service:
+        type: demo.print-to-console
+- account-name: tests
+  autostart: false
+  actors:
+    "0":
+      name: test-emitter
+      kind: emitter
+      status: enabled
+      roles: [test-emitter]
+http:
+- account-name: gw
+  autostart: false
+graphs:
+  in:
+    nodes:
+    - id: source
+      type: emitter
+      actors: [test-emitter]
+      outputs: [default]
+      sourcematch:
+        eventtypes: [msg]
+    - id: sink
+      type: consumer
+      actors: []
+      inputs: [default]
+      roles: [php-consumer]
+      rolebroadcast: true
+    edges:
+    - source->sink
+  out:
+    nodes:
+    - id: source
+      type: emitter
+      actors: [php-emitter]
+      outputs: [default]
+      sourcematch:
+        eventtypes: [msg.reply]
+    - id: sink
+      type: consumer
+      actors: []
+      inputs: [default]
+      roles: [console-printer]
+      rolebroadcast: true
+    edges:
+    - source->sink

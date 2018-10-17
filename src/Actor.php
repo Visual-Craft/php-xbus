@@ -92,6 +92,8 @@ final class Actor
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->mergeFromString(fread($input, 1024*1024*2));
 
+        error_log("Decoded the incoming message");
+
         if (count($processRequest->getInputs()) <1) {
             call_user_func($responseCode, 400);
             fwrite($response, "Invalid request: no input");
@@ -104,14 +106,16 @@ final class Actor
                 $state = new \Xbus\ActorProcessingState();
                 $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
             }
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
+            error_log("Caught an exception: " . $e);
             $state = new \Xbus\ActorProcessingState();
             $state->setStatus(\Xbus\ActorProcessingState_Status::ERROR);
 
             $message = new \Xbus\LogMessage();
-            $message.setText($e);
+            $message->setText("Caught an exception: " . $e);
+            $messages = array($message);
 
-            $state->setMessages(array($message));
+            $state->setMessages($messages);
         }
         call_user_func($responseHeader, "Content-Type: application/x-protobuf");
 
