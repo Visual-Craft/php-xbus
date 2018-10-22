@@ -62,7 +62,7 @@ final class Actor
             $data
         );
 
-        if ($response->status_code != 200 || $response->body == "OK") {
+        if ($response->status_code != 200 || $response->body != "OK") {
             throw new \Exception(
                 "Error sending envelope: status=" . $response->status_code
                 . ", body:" . $response->body
