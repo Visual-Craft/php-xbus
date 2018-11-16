@@ -9,7 +9,7 @@ namespace XbusClient;
 /**
  * Actor
  */
-final class Actor
+class Actor
 {
     private $_url;
     private $_name;
