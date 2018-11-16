@@ -5,7 +5,8 @@
   "type": "library",
   "require": {
     "google/protobuf": "^3.6",
-    "rmccue/requests": "^1.7"
+    "rmccue/requests": "^1.7",
+    "psr/log": "^1.0"
   },
   "require-dev": {
     "github.com/nats-rpc/nrpc": "dev-master",

@@ -6,6 +6,8 @@ declare(strict_types=1);
 
 namespace XbusClient;
 
+use Psr\Log\LoggerInterface;
+
 /**
  * Actor
  */
@@ -15,6 +17,11 @@ class Actor
     private $_name;
     private $_apiKey;
     private $_requestPost;
+
+    /**
+     * @var LoggerInterface|null
+     */
+    private $_logger;
 
     public function __construct(string $url, string $name, string $apiKey)
     {
@@ -29,6 +36,11 @@ class Actor
     public function setRequestPost(callable $requestPost): void
     {
         $this->_requestPost = $requestPost;
+    }
+
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->_logger = $logger;
     }
 
     /**
@@ -92,7 +104,9 @@ class Actor
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->mergeFromString(fread($input, 1024*1024*2));
 
-        error_log("Decoded the incoming message");
+        if ($this->_logger !== null) {
+            $this->_logger->info(__METHOD__ . ': decoded the incoming message');
+        }
 
         if (count($processRequest->getInputs()) <1) {
             call_user_func($responseCode, 400);
@@ -107,7 +121,12 @@ class Actor
                 $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
             }
         } catch(\Exception $e) {
-            error_log("Caught an exception: " . $e);
+            if ($this->_logger !== null) {
+                $this->_logger->error(__METHOD__ . ': caught an exception during processing request', array(
+                    'exception' => $e,
+                ));
+            }
+
             $state = new \Xbus\ActorProcessingState();
             $state->setStatus(\Xbus\ActorProcessingState_Status::ERROR);
 
