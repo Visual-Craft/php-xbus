@@ -21,17 +21,15 @@ final class ActorTest extends TestCase
         $mypost = function ($url, $headers):\Requests_Response {
             $this->assertEquals("http://test.test/sender/output", $url);
             $this->assertEquals("theApiKey", $headers["Xbus-Api-Key"]);
-
-            $ack = new \Xbus\EnvelopeAck();
-            $ack->setStatus(\Xbus\EnvelopeAck_ReceptionStatus::ACCEPTED);
+            $this->assertEquals("application/x-protobuf", $headers["Content-Type"]);
 
             $res = new \Requests_Response();
             $res->success = true;
             $res->status_code = 200;
             $res->headers = array(
-                'Content-Type'=> 'application/x-protobuf'
+                'Content-Type'=> 'text/plain'
             );
-            $res->body = $ack->serializeToString();
+            $res->body = 'OK';
             return $res;
         };
 
