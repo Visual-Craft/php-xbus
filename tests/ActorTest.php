@@ -80,6 +80,42 @@ final class ActorTest extends TestCase
         );
     }
 
+    public function testHandleRequestWithInvalidContentType(): void
+    {
+        $inputs = array(new \Xbus\ActorProcessRequest_Input());
+        $processRequest = new \Xbus\ActorProcessRequest();
+        $processRequest->setInputs($inputs);
+
+        $input = fopen('php://memory', 'rwb');
+        fwrite($input, $processRequest->serializeToString());
+        fseek($input, 0);
+
+        $setHeader = function ($h) {};
+        $responseHttpCode = null;
+        $setHttpCode = function ($code) use (&$responseHttpCode) {
+            $responseHttpCode = $code;
+        };
+        $output = fopen('php://memory', 'rwb');
+
+        $actor = new \XbusClient\Actor('http://test.test', 'receiver', 'theApiKey');
+
+        $handler = function ($processRequest): ?\Xbus\ActorProcessingState {
+            return null;
+        };
+
+
+        $actor->handleRequest(
+            'text/html',
+            $input, $setHeader, $setHttpCode, $output, $handler
+        );
+
+
+        fseek($output, 0);
+        $responseBody = stream_get_contents($output);
+        $this->assertEquals(400, $responseHttpCode, 'Unexpected response HTTP code');
+        $this->assertEquals('Invalid request: invalid content type', $responseBody, 'Unexpected response body');
+    }
+
     public function testHandleRequestLogging(): void
     {
         $logger = $this->getMockBuilder(\Psr\Log\LoggerInterface::class)->getMock();
