@@ -99,7 +99,9 @@ class Actor
         $cb
     ) {
         if ($contentType != "application/x-protobuf") {
-            throw new \Exception("Invalid content type: " . $contentType);
+            call_user_func($responseCode, 400);
+            fwrite($response, 'Invalid request: invalid content type');
+            return;
         }
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->mergeFromString(fread($input, 1024*1024*2));
