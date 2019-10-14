@@ -90,7 +90,8 @@ final class ActorTest extends TestCase
         fwrite($input, $processRequest->serializeToString());
         fseek($input, 0);
 
-        $setHeader = function ($h) {};
+        $setHeader = function ($h) {
+        };
         $responseHttpCode = null;
         $setHttpCode = function ($code) use (&$responseHttpCode) {
             $responseHttpCode = $code;
@@ -122,23 +123,24 @@ final class ActorTest extends TestCase
         $logger
             ->expects($this->once())
             ->method('info')
-            ->with($this->equalTo(\XbusClient\Actor::class . '::handleRequest: decoded the incoming message'))
-        ;
+            ->with($this->equalTo(\XbusClient\Actor::class . '::handleRequest: decoded the incoming message'));
         $logger->expects($this->never())->method('error');
 
         $actor = new \XbusClient\Actor('http://test.test', 'receiver', 'theApiKey');
         $actor->setLogger($logger);
-        $actor->setRequestPost(function ($url, $headers): \Requests_Response {
-            $res = new \Requests_Response();
-            $res->success = true;
-            $res->status_code = 200;
-            $res->headers = array(
+        $actor->setRequestPost(
+            function ($url, $headers): \Requests_Response {
+                $res = new \Requests_Response();
+                $res->success = true;
+                $res->status_code = 200;
+                $res->headers = array(
                 'Content-Type'=> 'application/x-protobuf'
-            );
-            $res->body = 'OK';
+                );
+                $res->body = 'OK';
 
-            return $res;
-        });
+                return $res;
+            }
+        );
         $inputs = array(new \Xbus\ActorProcessRequest_Input());
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->setInputs($inputs);
@@ -171,25 +173,28 @@ final class ActorTest extends TestCase
             ->method('error')
             ->with(
                 $this->equalTo(\XbusClient\Actor::class . '::handleRequest: caught an exception during processing request'),
-                $this->equalTo(array(
+                $this->equalTo(
+                    array(
                     'exception' => $exception,
-                ))
-            )
-        ;
+                    )
+                )
+            );
 
         $actor = new \XbusClient\Actor('http://test.test', 'receiver', 'theApiKey');
         $actor->setLogger($logger);
-        $actor->setRequestPost(function ($url, $headers): \Requests_Response {
-            $res = new \Requests_Response();
-            $res->success = true;
-            $res->status_code = 200;
-            $res->headers = array(
+        $actor->setRequestPost(
+            function ($url, $headers): \Requests_Response {
+                $res = new \Requests_Response();
+                $res->success = true;
+                $res->status_code = 200;
+                $res->headers = array(
                 'Content-Type'=> 'application/x-protobuf'
-            );
-            $res->body = 'OK';
+                );
+                $res->body = 'OK';
 
-            return $res;
-        });
+                return $res;
+            }
+        );
         $inputs = array(new \Xbus\ActorProcessRequest_Input());
         $processRequest = new \Xbus\ActorProcessRequest();
         $processRequest->setInputs($inputs);
@@ -212,6 +217,57 @@ final class ActorTest extends TestCase
             $input, $setHeader, $setHttpCode, $output, $handler
         );
     }
-}
+
+    public function testHandleRequestWithDecodingError(): void
+    {
+        $logger = $this->getMockBuilder(\Psr\Log\LoggerInterface::class)->getMock();
+        $logger
+            ->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->equalTo(
+                    \XbusClient\Actor::class .
+                    '::handleRequest: caught an exception during message decoding'
+                )
+            );
+
+        $actor = new \XbusClient\Actor('http://test.test', 'receiver', 'theApiKey');
+        $actor->setLogger($logger);
+        $actor->setRequestPost(
+            function ($url, $headers): \Requests_Response {
+                $res = new \Requests_Response();
+                $res->success = true;
+                $res->status_code = 200;
+                $res->headers = array(
+                'Content-Type'=> 'application/x-protobuf'
+                );
+                $res->body = 'OK';
+
+                return $res;
+            }
+        );
+        $inputs = array(new \Xbus\ActorProcessRequest_Input());
+        $processRequest = new \Xbus\ActorProcessRequest();
+        $processRequest->setInputs($inputs);
+        $input = fopen('php://memory', 'rw');
+        //fwrite($input, $processRequest->serializeToString());
+        fwrite($input, "invalid protobuf input");
+        fseek($input, 0);
+        $setHeader = function ($h) {
+            $this->assertEquals('Content-Type: application/x-protobuf', $h);
+        };
+        $setHttpCode = function ($code) {
+
+        };
+        $output = fopen('php://memory', 'rw');
+        $handler = function ($processRequest): ?\Xbus\ActorProcessingState {
+        };
+
+        $actor->handleRequest(
+            'application/x-protobuf',
+            $input, $setHeader, $setHttpCode, $output, $handler
+        );
+    }
+};
 
 ?>

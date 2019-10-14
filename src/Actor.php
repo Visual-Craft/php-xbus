@@ -103,40 +103,65 @@ class Actor
             fwrite($response, 'Invalid request: invalid content type');
             return;
         }
-        $processRequest = new \Xbus\ActorProcessRequest();
-        $processRequest->mergeFromString(fread($input, 1024*1024*2));
-
-        if ($this->_logger !== null) {
-            $this->_logger->info(__METHOD__ . ': decoded the incoming message');
-        }
-
-        if (count($processRequest->getInputs()) <1) {
-            call_user_func($responseCode, 400);
-            fwrite($response, "Invalid request: no input");
-            return;
-        }
 
         try {
-            $state = call_user_func($cb, $processRequest);
-            if ($state == null) {
-                $state = new \Xbus\ActorProcessingState();
-                $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
+            $processRequest = new \Xbus\ActorProcessRequest();
+            $processRequest->mergeFromString(fread($input, 1024*1024*2));
+
+            if ($this->_logger !== null) {
+                $this->_logger->info(__METHOD__ . ': decoded the incoming message');
             }
         } catch(\Exception $e) {
             if ($this->_logger !== null) {
-                $this->_logger->error(__METHOD__ . ': caught an exception during processing request', array(
-                    'exception' => $e,
-                ));
+                $this->_logger->error(
+                    __METHOD__ . ': caught an exception during message decoding',
+                    array( 'exception' => $e )
+                );
             }
+            $processRequest = null;
 
             $state = new \Xbus\ActorProcessingState();
             $state->setStatus(\Xbus\ActorProcessingState_Status::ERROR);
 
             $message = new \Xbus\LogMessage();
-            $message->setText("Caught an exception: " . $e);
+            $message->setText("Message decoding failed: " . $e);
             $messages = array($message);
 
             $state->setMessages($messages);
+        }
+
+
+        if ($processRequest !== null) {
+            if (count($processRequest->getInputs()) <1) {
+                call_user_func($responseCode, 400);
+                fwrite($response, "Invalid request: no input");
+                return;
+            }
+
+            try {
+                $state = call_user_func($cb, $processRequest);
+                if ($state == null) {
+                    $state = new \Xbus\ActorProcessingState();
+                    $state->setStatus(\Xbus\ActorProcessingState_Status::SUCCESS);
+                }
+            } catch(\Exception $e) {
+                if ($this->_logger !== null) {
+                    $this->_logger->error(
+                        __METHOD__
+                            . ': caught an exception during processing request',
+                        array( 'exception' => $e )
+                    );
+                }
+
+                $state = new \Xbus\ActorProcessingState();
+                $state->setStatus(\Xbus\ActorProcessingState_Status::ERROR);
+
+                $message = new \Xbus\LogMessage();
+                $message->setText("Caught an exception: " . $e);
+                $messages = array($message);
+
+                $state->setMessages($messages);
+            }
         }
         call_user_func($responseHeader, "Content-Type: application/x-protobuf");
 
