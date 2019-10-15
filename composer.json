@@ -9,13 +9,13 @@
     "psr/log": "^1.0"
   },
   "require-dev": {
-    "github.com/nats-rpc/nrpc": "dev-master",
+    "nats-rpc/nrpc": "dev-master",
     "phpunit/phpunit": "^7"
   },
   "repositories" : [{
       "type": "package",
       "package": {
-          "name": "github.com/nats-rpc/nrpc",
+          "name": "nats-rpc/nrpc",
           "version": "dev-master",
           "source": {
               "url": "https://github.com/nats-rpc/nrpc",
