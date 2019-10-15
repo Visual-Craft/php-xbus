@@ -125,6 +125,7 @@ class Actor
 
             $message = new \Xbus\LogMessage();
             $message->setText("Message decoding failed: " . $e);
+            $message->setLevel(\Xbus\LogLevel::ERROR);
             $messages = array($message);
 
             $state->setMessages($messages);
@@ -158,6 +159,7 @@ class Actor
 
                 $message = new \Xbus\LogMessage();
                 $message->setText("Caught an exception: " . $e);
+                $message->setLevel(\Xbus\LogLevel::ERROR);
                 $messages = array($message);
 
                 $state->setMessages($messages);
