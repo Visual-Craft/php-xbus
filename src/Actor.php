@@ -105,8 +105,12 @@ class Actor
         }
 
         try {
+            $content = "";
+            while (!feof($input)) {
+                $content .= fread($input, 8192);
+            }
             $processRequest = new \Xbus\ActorProcessRequest();
-            $processRequest->mergeFromString(fread($input, 1024*1024*2));
+            $processRequest->mergeFromString($content);
 
             if ($this->_logger !== null) {
                 $this->_logger->info(__METHOD__ . ': decoded the incoming message');
